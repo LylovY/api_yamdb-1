@@ -4,8 +4,10 @@ from django.utils import timezone
 from users.models import User
 
 
+CHOICES_SCORE = [(i, i) for i in range(1, 11)]
+
+
 class Review(models.Model):
-    CHOICES_SCORE = [(i, i) for i in range(1, 11)]
 
     title = models.ForeignKey(
         'Title',

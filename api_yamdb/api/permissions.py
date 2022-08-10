@@ -9,3 +9,13 @@ class IsAdmin(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return (
             request.user.role == 'admin')
+
+
+class IsAuthorOrReadOnly(permissions.BasePermission):
+    """
+    Позволяет только авторам редактировать и удалять объект.
+    Остальным просматривать.
+    """
+    def has_object_permission(self, request, view, obj):
+        return (request.method in permissions.SAFE_METHODS
+                or obj.author == request.user)
