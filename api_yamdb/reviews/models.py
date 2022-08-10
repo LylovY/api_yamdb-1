@@ -1,6 +1,6 @@
-from django.core.validators import MinLengthValidator
+from django.core.validators import MaxValueValidator, MinLengthValidator
 from django.db import models
-
+from django.utils import timezone
 from users.models import User
 
 
@@ -60,3 +60,38 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=256)
+    slug = models.SlugField(unique=True, max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
+class Genre(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Title(models.Model):
+    name = models.CharField(max_length=255)
+    year = models.IntegerField(
+        validators=[MaxValueValidator(timezone.now().year)])
+    rating = models.IntegerField(null=True)
+    description = models.TextField()
+    genre = models.ManyToManyField('Genre')
+    category = models.ForeignKey(
+        'Category',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='titles',
+    )
+
+    def __str__(self):
+        return self.name
