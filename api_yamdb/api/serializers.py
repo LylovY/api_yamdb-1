@@ -72,23 +72,33 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
-        default=serializers.CurrentUserDefault(),
+        # default=serializers.CurrentUserDefault(),
     )
+    # title = serializers.HiddenField(default=serializers.CurrentUserDefault())
     score = serializers.ChoiceField(choices=CHOICES_SCORE)
-
-    # +добавить проверку что можно оставить один отзыв на произведение
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
-        read_only_fields = ('title', 'pub_date')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=('title', 'author'),
-                message='Можно оставить только один отзыв.',
-            )
-        ]
+        read_only_fields = ('title',)
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=('title', 'author'),
+        #         message='Можно оставить только один отзыв.',
+        #     )
+        # ]
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username',
+    )
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')
 
 
 class CategorySerializer(serializers.ModelSerializer):
