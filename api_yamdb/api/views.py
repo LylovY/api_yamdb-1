@@ -17,7 +17,7 @@ from users.models import User
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
 from .permissions import (IsAdminOrSuperuser,
-                          IsAuthorOrReadOnly)
+                          IsAuthorOrReadOnly, IsAdminOrReadOnly)
 from .serializers import (AuthUserSerializer, CategorySerializer,
                           GenreSerializer, ReviewSerializer,
                           SelfUserSerializer, TitlePostSerializer,
@@ -140,7 +140,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CategoryGenreViewSet(CreateListDestroyViewSet):
-    permission_classes = (IsAdminOrSuperuser,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (SearchFilter,)
     search_fields = ('=name',)
     lookup_field = 'slug'
@@ -158,7 +158,7 @@ class GenreViewSet(CategoryGenreViewSet):
 
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg(F('reviews__score')))
-    permission_classes = (IsAdminOrSuperuser,)
+    permission_classes = (IsAdminOrReadOnly,)
     filterset_class = TitleFilter
 
     def get_serializer_class(self):

@@ -10,4 +10,4 @@ router_v1.register(
 )
 router_v1.register('categories', CategoryViewSet, basename='categories')
 router_v1.register('genres', GenreViewSet, basename='genres')
-router_v1.register('titles', TitlesViewSet, basename='title')
+router_v1.register('titles', TitlesViewSet, basename='titles')
