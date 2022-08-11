@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from users.models import User
+from reviews.models import Review, CHOICES_SCORE
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -36,3 +37,26 @@ class SelfUserSerializer(AuthUserSerializer):
         fields = ('username', 'email', 'first_name',
                   'last_name', 'bio', 'role')
         read_only_fields = ('role',)
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username',
+        default=serializers.CurrentUserDefault()
+    )
+    score = serializers.ChoiceField(choices=CHOICES_SCORE)
+
+    # +добавить проверку что можно оставить один отзыв на произведение
+
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        read_only_fields = ('title', 'pub_date')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Review.objects.all(),
+                fields=('title', 'author'),
+                message='Можно оставить только один отзыв.'
+            )
+        ]

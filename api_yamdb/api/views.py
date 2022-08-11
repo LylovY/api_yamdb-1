@@ -1,5 +1,7 @@
 import random
 
+from django.shortcuts import get_object_or_404
+
 from django.core.mail import send_mail
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view
@@ -8,9 +10,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import User
+from reviews.models import Title
 
-from .permissions import IsAdmin
-from .serializers import AuthUserSerializer, SelfUserSerializer, UserSerializer
+from .permissions import IsAdmin, IsAuthorOrReadOnly
+from .serializers import (AuthUserSerializer, SelfUserSerializer,
+                          UserSerializer, ReviewSerializer)
 
 
 def generate_code():
@@ -98,3 +102,17 @@ class SelfUserViewSet(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+    pagination_class = PageNumberPagination
+
+    def get_queryset(self):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title.reviews
+
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
