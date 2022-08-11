@@ -18,21 +18,36 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='user',
             name='role',
-            field=models.CharField(choices=[('user', 'user'), ('moderator', 'moderator'), ('admin', 'admin')], default='user', max_length=15, verbose_name='Роль пользователя'),
+            field=models.CharField(
+                choices=[
+                    ('user', 'user'),
+                    ('moderator', 'moderator'),
+                    ('admin', 'admin'),
+                ],
+                default='user',
+                max_length=15,
+                verbose_name='Роль пользователя',
+            ),
         ),
         migrations.AlterField(
             model_name='user',
             name='email',
-            field=models.EmailField(max_length=254, unique=True, verbose_name='email'),
+            field=models.EmailField(
+                max_length=254, unique=True, verbose_name='email'
+            ),
         ),
         migrations.AlterField(
             model_name='user',
             name='is_active',
-            field=models.BooleanField(default=False, verbose_name='активированный аккаунт'),
+            field=models.BooleanField(
+                default=False, verbose_name='активированный аккаунт'
+            ),
         ),
         migrations.AlterField(
             model_name='user',
             name='username',
-            field=models.CharField(max_length=150, unique=True, verbose_name='Ник пользователя'),
+            field=models.CharField(
+                max_length=150, unique=True, verbose_name='Ник пользователя'
+            ),
         ),
     ]
