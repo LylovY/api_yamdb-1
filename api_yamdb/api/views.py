@@ -1,20 +1,27 @@
 import random
 
 from django.core.mail import send_mail
+from django.db.models import Avg, F
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Title
+
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
-from .permissions import IsAdminOrSuperuser, IsAuthorOrReadOnly
-from .serializers import (AuthUserSerializer, ReviewSerializer,
-                          SelfUserSerializer, UserSerializer,
-                          UserTokenSerializer)
+from .filters import TitleFilter
+from .mixins import CreateListDestroyViewSet
+from .permissions import (IsAdminOrSuperuser,
+                          IsAuthorOrReadOnly)
+from .serializers import (AuthUserSerializer, CategorySerializer,
+                          GenreSerializer, ReviewSerializer,
+                          SelfUserSerializer, TitlePostSerializer,
+                          TitleSerializer, UserSerializer, UserTokenSerializer)
 
 
 def generate_code():
@@ -24,10 +31,7 @@ def generate_code():
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token)
-    }
+    return {'refresh': str(refresh), 'access': str(refresh.access_token)}
 
 
 @api_view(['POST'])
@@ -44,21 +48,25 @@ def create_user_send_code(request):
                     message = confirmation_code
                     user.code = confirmation_code
                     user.save()
-                    send_mail('Код подтверждения Yamdb',
-                              message,
-                              'from@example.com',
-                              [email],
-                              fail_silently=False)
+                    send_mail(
+                        'Код подтверждения Yamdb',
+                        message,
+                        'from@example.com',
+                        [email],
+                        fail_silently=False,
+                    )
                     return Response('Код отправлен', status=status.HTTP_200_OK)
             serializer.validated_data['code'] = confirmation_code
             serializer.save()
             message = confirmation_code
             to_email = serializer.data['email']
-            send_mail('Код подтверждения Yamdb',
-                      message,
-                      'from@example.com',
-                      [to_email],
-                      fail_silently=False)
+            send_mail(
+                'Код подтверждения Yamdb',
+                message,
+                'from@example.com',
+                [to_email],
+                fail_silently=False,
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,10 +85,13 @@ def get_token(request):
                 user.save()
                 token = get_tokens_for_user(user)
                 return Response({'token': token['access']})
-            return Response('Отсутствует код или он некорректен',
-                            status=status.HTTP_400_BAD_REQUEST)
-        return Response('Пользователь не найден',
-                        status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                'Отсутствует код или он некорректен',
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            'Пользователь не найден', status=status.HTTP_404_NOT_FOUND
+        )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -94,7 +105,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class SelfUserViewSet(APIView):
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         username = self.request.user.username
@@ -106,7 +117,8 @@ class SelfUserViewSet(APIView):
         username = self.request.user.username
         user = User.objects.get(username=username)
         serializer = SelfUserSerializer(
-            user, data=request.data, partial=True, many=False)
+            user, data=request.data, partial=True, many=False
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -125,3 +137,31 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+
+
+class CategoryGenreViewSet(CreateListDestroyViewSet):
+    permission_classes = (IsAdminOrSuperuser,)
+    filter_backends = (SearchFilter,)
+    search_fields = ('=name',)
+    lookup_field = 'slug'
+
+
+class CategoryViewSet(CategoryGenreViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(CategoryGenreViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitlesViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.annotate(rating=Avg(F('reviews__score')))
+    permission_classes = (IsAdminOrSuperuser,)
+    filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleSerializer
+        return TitlePostSerializer

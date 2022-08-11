@@ -1,8 +1,8 @@
 from django.core.validators import MaxValueValidator, MinLengthValidator
 from django.db import models
 from django.utils import timezone
-from users.models import User
 
+from users.models import User
 
 CHOICES_SCORE = [(i, i) for i in range(1, 11)]
 
@@ -13,25 +13,24 @@ class Review(models.Model):
         'Title',
         on_delete=models.CASCADE,
         related_name='reviews',
-        verbose_name='Произведение'
+        verbose_name='Произведение',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
     )
     text = models.TextField(
         verbose_name='Текст отзыва',
-        validators=[MinLengthValidator(1, 'Пустое поле')]
+        validators=[MinLengthValidator(1, 'Пустое поле')],
     )
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка произведения от 1 до 10',
         choices=CHOICES_SCORE,
     )
     pub_date = models.DateTimeField(
-        verbose_name='Дата написания отзыва',
-        auto_now_add=True
+        verbose_name='Дата написания отзыва', auto_now_add=True
     )
 
     class Meta:
@@ -43,21 +42,20 @@ class Comment(models.Model):
         'Review',
         on_delete=models.CASCADE,
         related_name='comments',
-        verbose_name='Отзыв'
+        verbose_name='Отзыв',
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='comments',
-        verbose_name='Пользователь'
+        verbose_name='Пользователь',
     )
     text = models.TextField(
         verbose_name='Комментарий к отзыву',
-        validators=[MinLengthValidator(1, 'Пустое поле')]
+        validators=[MinLengthValidator(1, 'Пустое поле')],
     )
     pub_date = models.DateTimeField(
-        verbose_name='Дата написания отзыва',
-        auto_now_add=True
+        verbose_name='Дата написания отзыва', auto_now_add=True
     )
 
     class Meta:
@@ -83,8 +81,8 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=255)
     year = models.IntegerField(
-        validators=[MaxValueValidator(timezone.now().year)])
-    rating = models.IntegerField(null=True)
+        validators=[MaxValueValidator(timezone.now().year)]
+    )
     description = models.TextField()
     genre = models.ManyToManyField('Genre')
     category = models.ForeignKey(
