@@ -15,8 +15,6 @@ class User(AbstractUser):
         unique=True, max_length=150, verbose_name='Ник пользователя')
     email = models.EmailField(
         unique=True, max_length=254, verbose_name='email')
-    is_active = models.BooleanField(
-        default=False, verbose_name='активированный аккаунт')
     bio = models.TextField(
         verbose_name='Биография',
         blank=True,

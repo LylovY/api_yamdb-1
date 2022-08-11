@@ -1,20 +1,20 @@
 import random
 
-from django.shortcuts import get_object_or_404
-
 from django.core.mail import send_mail
-from rest_framework import mixins, status, viewsets
+from django.shortcuts import get_object_or_404
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from users.models import User
 from reviews.models import Title
+from users.models import User
 
-from .permissions import IsAdmin, IsAuthorOrReadOnly
-from .serializers import (AuthUserSerializer, SelfUserSerializer,
-                          UserSerializer, ReviewSerializer)
+from .permissions import IsAdminOrSuperuser, IsAuthorOrReadOnly
+from .serializers import (AuthUserSerializer, ReviewSerializer,
+                          SelfUserSerializer, UserSerializer,
+                          UserTokenSerializer)
 
 
 def generate_code():
@@ -36,6 +36,20 @@ def create_user_send_code(request):
         serializer = AuthUserSerializer(data=request.data)
         if serializer.is_valid():
             confirmation_code = generate_code()
+            username = serializer.validated_data['username']
+            email = serializer.validated_data['email']
+            if User.objects.filter(username=username).exists():
+                user = User.objects.get(username=username)
+                if user.username == username and user.email == email:
+                    message = confirmation_code
+                    user.code = confirmation_code
+                    user.save()
+                    send_mail('Код подтверждения Yamdb',
+                              message,
+                              'from@example.com',
+                              [email],
+                              fail_silently=False)
+                    return Response('Код отправлен', status=status.HTTP_200_OK)
             serializer.validated_data['code'] = confirmation_code
             serializer.save()
             message = confirmation_code
@@ -45,48 +59,43 @@ def create_user_send_code(request):
                       'from@example.com',
                       [to_email],
                       fail_silently=False)
-            return Response('Код отправлен', status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 def get_token(request):
-    username = request.data['username']
-    code = int(request.data['confirmation_code'])
-    if User.objects.filter(username=username).exists():
-        user = User.objects.get(username=username)
-        if user.code == code and code > 0:
-            user.is_active = True
-            if user.is_superuser:
-                user.role = 'admin'
-            user.save()
-            token = get_tokens_for_user(user)
-            return Response({'token': token['access']})
-        return Response('Отсутствует код или он некорректен',
-                        status=status.HTTP_400_BAD_REQUEST)
-    return Response('Пользователь не найден', status=status.HTTP_404_NOT_FOUND)
+    serializer = UserTokenSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        code = int(serializer.validated_data['confirmation_code'])
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            if user.code == code and code > 0:
+                if user.is_superuser:
+                    user.role = 'admin'
+                user.save()
+                token = get_tokens_for_user(user)
+                return Response({'token': token['access']})
+            return Response('Отсутствует код или он некорректен',
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response('Пользователь не найден',
+                        status=status.HTTP_404_NOT_FOUND)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     search_fields = ('username',)
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAdminOrSuperuser,)
     lookup_field = 'username'
     pagination_class = PageNumberPagination
 
 
-# class SelfUserViewSet(mixins.RetrieveModelMixin,
-#                       mixins.UpdateModelMixin,
-#                       viewsets.GenericViewSet):
-#     serializer_class = SelfUserSerializer
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return User.objects.filter(username=user)
-
-
 class SelfUserViewSet(APIView):
+    permission_classes = (permissions.IsAuthenticated, )
+
     def get(self, request):
         username = self.request.user.username
         user = User.objects.get(username=username)
@@ -100,7 +109,7 @@ class SelfUserViewSet(APIView):
             user, data=request.data, partial=True, many=False)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
