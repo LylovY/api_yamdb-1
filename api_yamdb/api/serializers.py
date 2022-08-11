@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from reviews.models import CHOICES_SCORE, Review
 from users.models import User
-from reviews.models import Review, CHOICES_SCORE
 
 
 class AuthUserSerializer(serializers.ModelSerializer):
@@ -20,6 +20,11 @@ class AuthUserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 '"Me" не доступен для поля username')
         return value
+
+
+class UserTokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.IntegerField()
 
 
 class UserSerializer(AuthUserSerializer):
