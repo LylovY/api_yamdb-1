@@ -4,20 +4,18 @@ from django.core.mail import send_mail
 from django.db.models import Avg, F
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import (IsAdminOrSuperuser,
-                          IsAuthorOrAdminOrModerator, IsAdminOrReadOnly)
+from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperuser,
+                          IsAuthorOrAdminOrModerator)
 from .serializers import (AuthUserSerializer, CategorySerializer,
                           CommentSerializer, GenreSerializer, ReviewSerializer,
                           SelfUserSerializer, TitlePostSerializer,
@@ -36,39 +34,40 @@ def get_tokens_for_user(user):
 
 @api_view(['POST'])
 def create_user_send_code(request):
-    if request.method == 'POST':
-        serializer = AuthUserSerializer(data=request.data)
-        if serializer.is_valid():
-            confirmation_code = generate_code()
-            username = serializer.validated_data['username']
-            email = serializer.validated_data['email']
-            if User.objects.filter(username=username).exists():
-                user = User.objects.get(username=username)
-                if user.username == username and user.email == email:
-                    message = confirmation_code
-                    user.code = confirmation_code
-                    user.save()
-                    send_mail(
-                        'Код подтверждения Yamdb',
-                        message,
-                        'from@example.com',
-                        [email],
-                        fail_silently=False,
-                    )
-                    return Response('Код отправлен', status=status.HTTP_200_OK)
-            serializer.validated_data['code'] = confirmation_code
-            serializer.save()
-            message = confirmation_code
-            to_email = serializer.data['email']
-            send_mail(
-                'Код подтверждения Yamdb',
-                message,
-                'from@example.com',
-                [to_email],
-                fail_silently=False,
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer = AuthUserSerializer(data=request.data)
+    if serializer.is_valid():
+        confirmation_code = generate_code()
+        username = serializer.validated_data['username']
+        email = serializer.validated_data['email']
+        if User.objects.filter(username=username).exists():
+            user = User.objects.get(username=username)
+            if user.username == username and user.email == email:
+                message = confirmation_code
+                user.code = confirmation_code
+                user.save()
+                send_mail(
+                    'Код подтверждения Yamdb',
+                    message,
+                    'from@example.com',
+                    [email],
+                    fail_silently=False,
+                )
+                return Response('Код отправлен', status=status.HTTP_200_OK)
+            return Response('Пользователь не совпадает с почтой',
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer.validated_data['code'] = confirmation_code
+        serializer.save()
+        message = confirmation_code
+        to_email = serializer.data['email']
+        send_mail(
+            'Код подтверждения Yamdb',
+            message,
+            'from@example.com',
+            [to_email],
+            fail_silently=False,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -103,26 +102,27 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     pagination_class = PageNumberPagination
 
-
-class SelfUserViewSet(APIView):
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def get(self, request):
-        username = self.request.user.username
-        user = User.objects.get(username=username)
-        serializer = SelfUserSerializer(user)
-        return Response(serializer.data)
-
-    def patch(self, request):
-        username = self.request.user.username
-        user = User.objects.get(username=username)
-        serializer = SelfUserSerializer(
-            user, data=request.data, partial=True, many=False
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False, methods=['get', 'patch'],
+            permission_classes=(permissions.IsAuthenticated,), url_path='me')
+    def me_path(self, request):
+        if request.method == 'GET':
+            username = self.request.user.username
+            user = User.objects.get(username=username)
+            serializer = SelfUserSerializer(user)
+            return Response(serializer.data)
+        if request.method == 'PATCH':
+            username = self.request.user.username
+            user = User.objects.get(username=username)
+            serializer = SelfUserSerializer(
+                user, data=request.data, partial=True, many=False
+            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
