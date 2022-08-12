@@ -36,6 +36,9 @@ class Review(models.Model):
     class Meta:
         ordering = ['-pub_date']
 
+    def __str__(self):
+        return self.text
+
 
 class Comment(models.Model):
     review = models.ForeignKey(
@@ -60,6 +63,9 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ['-pub_date']
+
+    def __str__(self):
+        return self.text
 
 
 class Category(models.Model):
