@@ -102,7 +102,75 @@ POST
   "role": "user"
 }
 ```
+http://127.0.0.1:8000/api/v1/categories/
 
+GET
+```
+[
+  {
+    "count": 0,
+    "next": "string",
+    "previous": "string",
+    "results": [
+      {
+        "name": "string",
+        "slug": "string"
+      }
+    ]
+  }
+]
+```
+
+POST
+```
+{
+  "name": "string",
+  "slug": "string"
+}
+```
+
+http://127.0.0.1:8000/api/v1/genres/
+
+
+GET
+```
+[
+  {
+    "count": 0,
+    "next": "string",
+    "previous": "string",
+    "results": [
+      {
+        "name": "string",
+        "slug": "string"
+      }
+    ]
+  }
+]
+```
+
+POST
+```
+{
+  "name": "string",
+  "slug": "string"
+}
+```
+
+http://127.0.0.1:8000/api/v1/titles/{titles_id}/
+
+PATCH
+```
+{
+  "name": "string",
+  "year": 0,
+  "description": "string",
+  "genre": [
+    "string"
+  ],
+  "category": "string"
+}
+```
 
 http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/
 
