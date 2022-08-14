@@ -1,9 +1,7 @@
 from core.models import CreatedModel
-
 from django.core.validators import MaxValueValidator, MinLengthValidator
 from django.db import models
 from django.utils import timezone
-
 from users.models import User
 
 CHOICES_SCORE = [(i, i) for i in range(1, 11)]
@@ -36,7 +34,8 @@ class Review(CreatedModel):
         ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
-                fields=['title', 'author'], name='unique_title_author')
+                fields=['title', 'author'], name='unique_title_author'
+            )
         ]
 
     def __str__(self):

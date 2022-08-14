@@ -1,9 +1,7 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-
 from reviews.models import (CHOICES_SCORE, Category, Comment, Genre, Review,
                             Title)
-
 from users.models import User
 
 
@@ -71,8 +69,10 @@ class SelfUserSerializer(AuthUserSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username',
-        default=serializers.CurrentUserDefault())
+        read_only=True,
+        slug_field='username',
+        default=serializers.CurrentUserDefault(),
+    )
     score = serializers.ChoiceField(choices=CHOICES_SCORE)
 
     class Meta:
@@ -88,7 +88,8 @@ class ReviewSerializer(serializers.ModelSerializer):
             and Review.objects.filter(author=author, title=title_id).exists()
         ):
             raise serializers.ValidationError(
-                'Можно оставить только один отзыв.')
+                'Можно оставить только один отзыв.'
+            )
         return obj
 
 

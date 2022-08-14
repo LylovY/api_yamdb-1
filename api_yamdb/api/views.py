@@ -3,17 +3,13 @@ import random
 from django.core.mail import send_mail
 from django.db.models import Avg, F
 from django.shortcuts import get_object_or_404
-
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
 from rest_framework_simplejwt.tokens import RefreshToken
-
 from reviews.models import Category, Genre, Review, Title
-
 from users.models import User
 
 from .filters import TitleFilter
@@ -57,8 +53,10 @@ def create_user_send_code(request):
                     fail_silently=False,
                 )
                 return Response('Код отправлен', status=status.HTTP_200_OK)
-            return Response('Пользователь не совпадает с почтой',
-                            status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                'Пользователь не совпадает с почтой',
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer.validated_data['code'] = confirmation_code
         serializer.save()
         message = confirmation_code
@@ -106,8 +104,12 @@ class UserViewSet(viewsets.ModelViewSet):
     lookup_field = 'username'
     pagination_class = PageNumberPagination
 
-    @action(detail=False, methods=['get', 'patch'],
-            permission_classes=(permissions.IsAuthenticated,), url_path='me')
+    @action(
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=(permissions.IsAuthenticated,),
+        url_path='me',
+    )
     def me_path(self, request):
         if request.method == 'GET':
             username = self.request.user.username
@@ -123,15 +125,17 @@ class UserViewSet(viewsets.ModelViewSet):
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthorOrAdminOrModerator, ]
+    permission_classes = [
+        IsAuthorOrAdminOrModerator,
+    ]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
@@ -145,7 +149,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorOrAdminOrModerator, ]
+    permission_classes = [
+        IsAuthorOrAdminOrModerator,
+    ]
     pagination_class = PageNumberPagination
 
     def get_queryset(self):

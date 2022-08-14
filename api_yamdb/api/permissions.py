@@ -8,7 +8,7 @@ class IsAdminOrSuperuser(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and (
-                request.user.role == 'admin' or request.user.is_superuser
+            request.user.role == 'admin' or request.user.is_superuser
         )
 
 
@@ -17,10 +17,11 @@ class IsAuthorOrAdminOrModerator(permissions.BasePermission):
     Позволяет просматривать объект всем, аутентифицированным добавлять отзыв,
     автору, модератору, админу редактировать и удалять отзыв.
     """
+
     def has_permission(self, request, view):
         return (
-                request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
         )
 
     def has_object_permission(self, request, view, obj):
@@ -29,15 +30,16 @@ class IsAuthorOrAdminOrModerator(permissions.BasePermission):
         if request.method == "POST":
             return request.user.is_authenticated
         return (
-                obj.author == request.user
-                or request.user.role == 'admin'
-                or request.user.role == 'moderator'
+            obj.author == request.user
+            or request.user.role == 'admin'
+            or request.user.role == 'moderator'
         )
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return (
-                request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated and request.user.role == 'admin'
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.role == 'admin'
         )
