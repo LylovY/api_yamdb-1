@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import (CHOICES_SCORE, Category, Comment, Genre, Review,
                             Title)
+
 from users.models import User
 
 
@@ -70,24 +71,25 @@ class SelfUserSerializer(AuthUserSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='username',
-        # default=serializers.CurrentUserDefault(),
-    )
-    # title = serializers.HiddenField(default=serializers.CurrentUserDefault())
+        read_only=True, slug_field='username',
+        default=serializers.CurrentUserDefault())
     score = serializers.ChoiceField(choices=CHOICES_SCORE)
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
-        read_only_fields = ('title',)
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=('title', 'author'),
-        #         message='Можно оставить только один отзыв.',
-        #     )
-        # ]
+
+    def validate(self, obj):
+        author = self.context['request'].user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        method = self.context['request'].method
+        if (
+            method == 'POST'
+            and Review.objects.filter(author=author, title=title_id).exists()
+        ):
+            raise serializers.ValidationError(
+                'Можно оставить только один отзыв.')
+        return obj
 
 
 class CommentSerializer(serializers.ModelSerializer):

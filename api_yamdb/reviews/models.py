@@ -1,3 +1,5 @@
+from core.models import CreatedModel
+
 from django.core.validators import MaxValueValidator, MinLengthValidator
 from django.db import models
 from django.utils import timezone
@@ -7,7 +9,7 @@ from users.models import User
 CHOICES_SCORE = [(i, i) for i in range(1, 11)]
 
 
-class Review(models.Model):
+class Review(CreatedModel):
 
     title = models.ForeignKey(
         'Title',
@@ -29,18 +31,19 @@ class Review(models.Model):
         verbose_name='Оценка произведения от 1 до 10',
         choices=CHOICES_SCORE,
     )
-    pub_date = models.DateTimeField(
-        verbose_name='Дата написания отзыва', auto_now_add=True
-    )
 
     class Meta:
         ordering = ['-pub_date']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'], name='unique_title_author')
+        ]
 
     def __str__(self):
         return self.text
 
 
-class Comment(models.Model):
+class Comment(CreatedModel):
     review = models.ForeignKey(
         'Review',
         on_delete=models.CASCADE,
@@ -56,9 +59,6 @@ class Comment(models.Model):
     text = models.TextField(
         verbose_name='Комментарий к отзыву',
         validators=[MinLengthValidator(1, 'Пустое поле')],
-    )
-    pub_date = models.DateTimeField(
-        verbose_name='Дата написания отзыва', auto_now_add=True
     )
 
     class Meta:
