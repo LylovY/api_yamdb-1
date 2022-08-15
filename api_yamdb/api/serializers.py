@@ -28,7 +28,7 @@ class AuthUserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
     def validate_username(self, value):
-        if value == 'me':
+        if value.lower() == 'me':
             raise serializers.ValidationError(
                 '"Me" не доступен для поля username'
             )
@@ -41,6 +41,7 @@ class UserTokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(AuthUserSerializer):
+
     class Meta:
         model = User
         fields = (
@@ -53,17 +54,9 @@ class UserSerializer(AuthUserSerializer):
         )
 
 
-class SelfUserSerializer(AuthUserSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
+class SelfUserSerializer(UserSerializer):
+
+    class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
 
 
