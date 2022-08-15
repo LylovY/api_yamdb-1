@@ -1,4 +1,5 @@
 from rest_framework import permissions
+
 from users.models import User
 
 
@@ -32,8 +33,8 @@ class IsAuthorOrAdminOrModerator(permissions.BasePermission):
             return request.user.is_authenticated
         return (
             obj.author == request.user
-            or request.user.role == 'admin'
-            or request.user.role == 'moderator'
+            or request.user.role == User.ADMIN
+            or request.user.role == User.MODERATOR
         )
 
 

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from reviews.models import (CHOICES_SCORE, Category, Comment, Genre, Review,
-                            Title)
+from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
@@ -66,11 +65,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         default=serializers.CurrentUserDefault(),
     )
-    score = serializers.ChoiceField(choices=CHOICES_SCORE)
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+    def validate_score(self, value):
+        if value < 1 or value > 10:
+            raise serializers.ValidationError(
+                'Оценка должна быть в диапазоне от 1 до 10'
+            )
+        return value
 
     def validate(self, obj):
         author = self.context['request'].user
