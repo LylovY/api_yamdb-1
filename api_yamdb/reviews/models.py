@@ -1,10 +1,12 @@
 from core.models import CreatedModel
-from django.core.validators import MaxValueValidator, MinLengthValidator
+
+from django.conf import settings
+from django.core.validators import (MaxValueValidator, MinLengthValidator,
+                                    MinValueValidator)
 from django.db import models
 from django.utils import timezone
-from users.models import User
 
-CHOICES_SCORE = [(i, i) for i in range(1, 11)]
+from users.models import User
 
 
 class Review(CreatedModel):
@@ -27,11 +29,14 @@ class Review(CreatedModel):
     )
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка произведения от 1 до 10',
-        choices=CHOICES_SCORE,
+        validators=[MinValueValidator(1, 'Минимальная оценка 1'),
+                    MaxValueValidator(10, 'Максимальная оценка 10')],
     )
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
         constraints = [
             models.UniqueConstraint(
                 fields=['title', 'author'], name='unique_title_author'
@@ -39,7 +44,7 @@ class Review(CreatedModel):
         ]
 
     def __str__(self):
-        return self.text
+        return self.text[:settings.NUMBER_SYMBOL_TEXT]
 
 
 class Comment(CreatedModel):
@@ -62,9 +67,11 @@ class Comment(CreatedModel):
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
 
     def __str__(self):
-        return self.text
+        return self.text[:settings.NUMBER_SYMBOL_TEXT]
 
 
 class Category(models.Model):
