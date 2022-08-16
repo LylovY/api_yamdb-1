@@ -1,11 +1,10 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from pkg_resources import _
 
 
 def year_validator(value):
-    if value < 1900 or value > timezone.now().year:
+    if value > timezone.now().year:
         raise ValidationError(
-            _('%(value)s указан некорректный год!'),
+            ('%(value)s введен некорректный год!'),
             params={'value': value},
         )

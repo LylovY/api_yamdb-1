@@ -145,3 +145,6 @@ class Title(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_genre(self):
+        return "\n".join([i.genres for i in self.genre.all()])
