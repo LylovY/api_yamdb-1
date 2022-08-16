@@ -12,21 +12,41 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='user',
-            options={'ordering': ['-date_joined'], 'verbose_name': 'Пользователи', 'verbose_name_plural': 'Пользователи'},
+            options={
+                'ordering': ['-date_joined'],
+                'verbose_name': 'Пользователи',
+                'verbose_name_plural': 'Пользователи',
+            },
         ),
         migrations.AlterField(
             model_name='user',
             name='code',
-            field=models.CharField(blank=True, default=0, max_length=40, unique=True),
+            field=models.CharField(
+                blank=True, default=0, max_length=40, unique=True
+            ),
         ),
         migrations.AlterField(
             model_name='user',
             name='role',
-            field=models.CharField(choices=[('user', 'Пользователь'), ('moderator', 'Модератор'), ('admin', 'Администратор')], default='user', max_length=15, verbose_name='Роль пользователя'),
+            field=models.CharField(
+                choices=[
+                    ('user', 'Пользователь'),
+                    ('moderator', 'Модератор'),
+                    ('admin', 'Администратор'),
+                ],
+                default='user',
+                max_length=15,
+                verbose_name='Роль пользователя',
+            ),
         ),
         migrations.AlterField(
             model_name='user',
             name='username',
-            field=models.CharField(db_index=True, max_length=150, unique=True, verbose_name='Ник пользователя'),
+            field=models.CharField(
+                db_index=True,
+                max_length=150,
+                unique=True,
+                verbose_name='Ник пользователя',
+            ),
         ),
     ]

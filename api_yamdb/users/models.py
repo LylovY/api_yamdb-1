@@ -9,13 +9,13 @@ class User(AbstractUser):
     ROLES = [
         (USER, 'Пользователь'),
         (MODERATOR, 'Модератор'),
-        (ADMIN, 'Администратор')
+        (ADMIN, 'Администратор'),
     ]
     username = models.CharField(
         unique=True,
         max_length=150,
         verbose_name='Ник пользователя',
-        db_index=True
+        db_index=True,
     )
     email = models.EmailField(
         unique=True, max_length=254, verbose_name='email'
@@ -39,7 +39,3 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
-    # @classmethod
-    # def choices(cls):
-    #     return [(key.value, key.name) for key in cls]
