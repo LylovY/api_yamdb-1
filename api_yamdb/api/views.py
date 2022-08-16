@@ -5,22 +5,32 @@ from django.db.models import Avg, F
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
-from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+
+from api_yamdb.settings import ADMIN_EMAIL
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
-from api_yamdb.settings import ADMIN_EMAIL
-
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperuser,
-                          IsAuthorOrAdminOrModerator)
-from .serializers import (AuthUserSerializer, CategorySerializer,
-                          CommentSerializer, GenreSerializer, ReviewSerializer,
-                          SelfUserSerializer, TitlePostSerializer,
-                          TitleSerializer, UserSerializer, UserTokenSerializer)
+from .permissions import (
+    IsAdminOrReadOnly,
+    IsAdminOrSuperuser,
+    IsAuthorOrAdminOrModerator,
+)
+from .serializers import (
+    AuthUserSerializer,
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    SelfUserSerializer,
+    TitlePostSerializer,
+    TitleSerializer,
+    UserSerializer,
+    UserTokenSerializer,
+)
 from .utils import get_tokens_for_user
 
 
