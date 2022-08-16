@@ -13,15 +13,33 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='comment',
-            options={'ordering': ['-pub_date'], 'verbose_name': 'Комментарий', 'verbose_name_plural': 'Комментарии'},
+            options={
+                'ordering': ['-pub_date'],
+                'verbose_name': 'Комментарий',
+                'verbose_name_plural': 'Комментарии',
+            },
         ),
         migrations.AlterModelOptions(
             name='review',
-            options={'ordering': ['-pub_date'], 'verbose_name': 'Отзыв', 'verbose_name_plural': 'Отзывы'},
+            options={
+                'ordering': ['-pub_date'],
+                'verbose_name': 'Отзыв',
+                'verbose_name_plural': 'Отзывы',
+            },
         ),
         migrations.AlterField(
             model_name='review',
             name='score',
-            field=models.PositiveSmallIntegerField(validators=[django.core.validators.MinValueValidator(1, 'Минимальная оценка 1'), django.core.validators.MaxValueValidator(10, 'Максимальная оценка 10')], verbose_name='Оценка произведения от 1 до 10'),
+            field=models.PositiveSmallIntegerField(
+                validators=[
+                    django.core.validators.MinValueValidator(
+                        1, 'Минимальная оценка 1'
+                    ),
+                    django.core.validators.MaxValueValidator(
+                        10, 'Максимальная оценка 10'
+                    ),
+                ],
+                verbose_name='Оценка произведения от 1 до 10',
+            ),
         ),
     ]

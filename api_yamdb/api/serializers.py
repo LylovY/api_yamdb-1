@@ -40,7 +40,6 @@ class UserTokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(AuthUserSerializer):
-
     class Meta:
         model = User
         fields = (
@@ -54,7 +53,6 @@ class UserSerializer(AuthUserSerializer):
 
 
 class SelfUserSerializer(UserSerializer):
-
     class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
 
@@ -105,13 +103,13 @@ class CommentSerializer(serializers.ModelSerializer):
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        exclude = ('id',)
 
 
 class TitleSerializer(serializers.ModelSerializer):

@@ -1,6 +1,5 @@
 import uuid
 
-from api_yamdb.settings import ADMIN_EMAIL
 from django.core.mail import send_mail
 from django.db.models import Avg, F
 from django.shortcuts import get_object_or_404
@@ -11,6 +10,8 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
+
+from api_yamdb.settings import ADMIN_EMAIL
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
@@ -74,8 +75,7 @@ def get_token(request):
     if User.objects.filter(username=username).exists():
         return Response('Неверный код', status=status.HTTP_400_BAD_REQUEST)
     return Response(
-        'Пользователь не существует',
-        status=status.HTTP_404_NOT_FOUND
+        'Пользователь не существует', status=status.HTTP_404_NOT_FOUND
     )
 
 
@@ -141,19 +141,12 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
 
-class CategoryGenreViewSet(CreateListDestroyViewSet):
-    permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (SearchFilter,)
-    search_fields = ('=name',)
-    lookup_field = 'slug'
-
-
-class CategoryViewSet(CategoryGenreViewSet):
+class CategoryViewSet(CreateListDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
 
-class GenreViewSet(CategoryGenreViewSet):
+class GenreViewSet(CreateListDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
