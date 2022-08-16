@@ -1,8 +1,12 @@
-from core.models import CreatedModel
 from django.conf import settings
-from django.core.validators import (MaxValueValidator, MinLengthValidator,
-                                    MinValueValidator)
+from django.core.validators import (
+    MaxValueValidator,
+    MinLengthValidator,
+    MinValueValidator,
+)
 from django.db import models
+
+from core.models import CreatedModel
 from users.models import User
 
 from .utils import year_validator
