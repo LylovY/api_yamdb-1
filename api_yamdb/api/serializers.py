@@ -5,7 +5,13 @@ from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 
-class AuthUserSerializer(serializers.ModelSerializer):
+class AuthExistUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('username', 'email')
+
+
+class AuthNewUserSerializer(AuthExistUserSerializer):
     username = serializers.CharField(
         validators=[
             UniqueValidator(
@@ -23,9 +29,8 @@ class AuthUserSerializer(serializers.ModelSerializer):
         ]
     )
 
-    class Meta:
-        model = User
-        fields = ('username', 'email')
+    class Meta(AuthExistUserSerializer.Meta):
+        pass
 
     def validate_username(self, value):
         if value.lower() == 'me':
@@ -40,7 +45,7 @@ class UserTokenSerializer(serializers.Serializer):
     confirmation_code = serializers.IntegerField()
 
 
-class UserSerializer(AuthUserSerializer):
+class UserSerializer(AuthNewUserSerializer):
     class Meta:
         model = User
         fields = (

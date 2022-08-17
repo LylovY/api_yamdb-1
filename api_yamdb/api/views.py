@@ -1,5 +1,6 @@
 import uuid
 
+from api_yamdb.settings import ADMIN_EMAIL
 from django.core.mail import send_mail
 from django.db.models import Avg, F
 from django.shortcuts import get_object_or_404
@@ -7,42 +8,30 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-
-from api_yamdb.settings import ADMIN_EMAIL
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import (
-    IsAdminOrReadOnly,
-    IsAdminOrSuperuser,
-    IsAuthorOrAdminOrModerator,
-)
-from .serializers import (
-    AuthUserSerializer,
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    SelfUserSerializer,
-    TitlePostSerializer,
-    TitleSerializer,
-    UserSerializer,
-    UserTokenSerializer,
-)
+from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperuser,
+                          IsAuthorOrAdminOrModerator)
+from .serializers import (AuthExistUserSerializer, AuthNewUserSerializer,
+                          CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          SelfUserSerializer, TitlePostSerializer,
+                          TitleSerializer, UserSerializer, UserTokenSerializer)
 from .utils import get_tokens_for_user
 
 
 @api_view(['POST'])
 def create_user_send_code(request):
-    serializer = AuthUserSerializer(data=request.data)
+    serializer = AuthExistUserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     confirmation_code = uuid.uuid4().hex
     username = serializer.validated_data['username']
     email = serializer.validated_data['email']
     if User.objects.filter(username=username, email=email).exists():
-        user = User.objects.filter(username=username, email=email)
+        user = User.objects.get(username=username, email=email)
         message = confirmation_code
         user.code = confirmation_code
         user.save()
@@ -54,7 +43,8 @@ def create_user_send_code(request):
             fail_silently=False,
         )
         return Response('Код отправлен', status=status.HTTP_200_OK)
-    serializer.save()
+    serializer = AuthNewUserSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
     serializer.validated_data['code'] = confirmation_code
     serializer.save()
     message = confirmation_code
@@ -76,7 +66,7 @@ def get_token(request):
     username = serializer.validated_data['username']
     code = serializer.validated_data['confirmation_code']
     if User.objects.filter(username=username, code=code).exists():
-        user = User.objects.filter(username=username, code=code)
+        user = User.objects.get(username=username, code=code)
         if user.is_superuser:
             user.role = User.ADMIN
         user.save()
