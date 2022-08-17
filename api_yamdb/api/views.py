@@ -10,16 +10,26 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
-
 from .filters import TitleFilter
 from .mixins import CreateListDestroyViewSet
-from .permissions import (IsAdminOrReadOnly, IsAdminOrSuperuser,
-                          IsAuthorOrAdminOrModerator)
-from .serializers import (AuthExistUserSerializer, AuthNewUserSerializer,
-                          CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          SelfUserSerializer, TitlePostSerializer,
-                          TitleSerializer, UserSerializer, UserTokenSerializer)
+from .permissions import (
+    IsAdminOrReadOnly,
+    IsAdminOrSuperuser,
+    IsAuthorOrAdminOrModerator,
+)
+from .serializers import (
+    AuthExistUserSerializer,
+    AuthNewUserSerializer,
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    SelfUserSerializer,
+    TitlePostSerializer,
+    TitleSerializer,
+    UserSerializer,
+    UserTokenSerializer,
+)
 from .utils import get_tokens_for_user
 
 

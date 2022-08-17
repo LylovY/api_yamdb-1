@@ -8,7 +8,6 @@ from django.db import models
 
 from core.models import CreatedModel
 from users.models import User
-
 from .utils import year_validator
 
 
@@ -147,4 +146,4 @@ class Title(models.Model):
         return self.name
 
     def get_genre(self):
-        return "\n".join([i.genres for i in self.genre.all()])
+        return self.genre.values_list('name').first()
